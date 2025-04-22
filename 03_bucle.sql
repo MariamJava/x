@@ -4,20 +4,23 @@
 DECLARE 
     v_texto varchar2(50);
     v_longitud  int;
-    v_letra varchar2(1);
+    v_letra char(1);
     v_numero int;
-    suma int;
+    v_suma int;
+    
 BEGIN
+    v_suma:= 0;
     v_texto := '&text';
     v_longitud:= length(v_texto);
-        dbms_output.put_line(suma);
+
     for i in 1..v_longitud loop
 
         v_letra:= substr(v_texto, i, 1);
         v_numero:= to_number(v_letra);
-        suma: = suma + v_numero;
-        dbms_output.put_line(suma);
+        v_suma:= v_suma + v_numero;
+        dbms_output.put_line(v_numero);
     end loop;
+    dbms_output.put_line('la suma de'||v_suma|| v_texto|| 'es' || v_suma);
 END;
 
 
