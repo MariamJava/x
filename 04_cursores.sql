@@ -1,3 +1,70 @@
+--Realizamos declaracion con dept
+describe DEPT; 
+DECLARE
+v_dept DEPT%ROWTYPE;
+CURSOR c_dept is 
+select * from DEPT;
+BEGIN
+    open c_dept;
+    loop
+        fetch c_dept into v_fila;
+        exit when c_dept%notfound;
+        DBMS_OUTPUT.PUT_LINE('Id: ' || v_fila.DEPT_NO
+        || ', Nombre: '|| v_fila.DNOMBRE || ', LOCALIDAD: ' || v_fila.loc);
+END;
+
+
+
+
+--Realizar codigo PL/SQL
+--Necesitamos modificarf el salario de los doctores de la paz
+--si la suma salarial supera 1000000 bajamos salarios en 10000 a todos
+--si la suma salarial no supera el millon, subimos salarios en 10000
+--Mostrar el numero de filas que hemos modificado (subir o bajar)
+--Doctores con suerte: 6, Doctores mas pobres: 6
+
+--Solucion 2. 
+
+
+
+--Solucion 1. 
+SELECT * FROM DOCTOR;
+SELECT * FROM HOSPITAL;
+Select sum(doctor.salario) as SUMASALARIAL from DOCTOR
+inner join HOSPITAL
+on DOCTOR.HOSPITAL_COD = HOSPITAL.HOSPITAL_COD
+where lower(HOSPITAL.NOMBRE) = 'la paz';
+
+
+
+DECLARE
+v_salarial NUMBER;
+BEGIN
+    Select sum(doctor.salario) into v_salarial 
+    from DOCTOR
+    inner join HOSPITAL
+    on DOCTOR.HOSPITAL_COD = HOSPITAL.HOSPITAL_COD
+    where lower(HOSPITAL.NOMBRE) = 'la paz'; 
+    DBMS_OUTPUT.PUT_LINE('Suma salarial la paz:  ' || v_salarial);
+    IF v_salarial > 1000000 then
+    UPDATE DOCTOR set SALARIO = SALARIO - 10000
+    where  HOSPITAL_COD=
+    (select HOSPITAL_COD from HOSPITAL where UPPER(NOMBRE)='LA PAZ');
+        DBMS_OUTPUT.PUT_LINE('Bajando salarios' || SQL%ROWCOUNT);
+    ELSE
+    IF v_salarial > 1000000 then
+    UPDATE DOCTOR set SALARIO = SALARIO + 10000
+    where  HOSPITAL_COD=
+    (select HOSPITAL_COD from HOSPITAL where UPPER(NOMBRE)='LA PAZ');
+        DBMS_OUTPUT.PUT_LINE('Doctores ricos' || SQL%ROWCOUNT);
+    END IF;
+    
+END;
+
+UPDATE DOCTOR set SALARIO = SALARIO + 10000
+where  HOSPITAL_COD=
+(select HOSPITAL_COD from HOSPITAL where UPPER(NOMBRE)='LA PAZ')
+
 --Realizar un codigo PL/SQL donde pediremos
 --numero, nombre y localidad de un DEPT
 --si dept existe, moodificamos su  nombre  y localidad
@@ -12,6 +79,10 @@ DECLARE
 --declaro tipo de variable
     v_num_dept DEPT.DEPT_NO%TYPE;
     v_nombre DEPT.DNOMBRE%TYPE;
+
+
+
+
     v_localidad DEPT.LOC%TYPE;
     --utilizamos cursor EXPLICITO? 
     cursor CURSORDEPT IS 
