@@ -1,0 +1,4 @@
+06367813-5c5d-4319-b140-90a6f24c8ae7:1745515781599:10:F:CREATE  or REPLACE PROCEDURE  sp_mensaje\nAS\nbegin\n        --mostramos mensaje\n        DBMS_OUTPUT.PUT_LINE('Hoy es juernes con musica !!! ');\nend;\nbegin\n    sp_mensaje;\nend;\n/
+a88e9624-d7e2-4ca5-91a3-2241896bd3f8:1745515808719:22:S:exec sp_mensaje;
+7e6ba665-d811-457d-bdb9-ca4fb4d77470:1745515970639:0:S:SET SERVEROUTPUT ON;
+0230616a-661c-4cdf-9457-3176c4e9a3d0:1745515982422:2:S:exec sp_mensaje;
