@@ -165,22 +165,79 @@ create or replace trigger tr_dept_control_localidades_after
 after update
 on DEPT
 declare
+    v_numero NUMBER;
 begin
+    select count(DEPT_NO) into v_numero from DEPT
+    where upper(LOC)=upper(PK_TRIGGERS.v_nueva_localidad);
+    if (v_numero > 0) then
+        RAISE_APPLICATION_ERROR(-20001, 'Solo un departamento por localidad');
+    end if;
     dbms_output.PUT_LINE('Localidad nueva: ' || PK_TRIGGERS.v_nueva_localidad);
 end;
 
-update DEPT set LOC='CADIZ' where DEPT_NO=10;
+update DEPT set LOC='CADIZ' where DEPT_NO=20;
 select * from DEPT;
 rollback;
-/*
-Dentro de un update no puedo utilizar un select con el for each pero si puedo usar :new
-de otro modo se puede usar update con select pero no con :new
 
-La opcion es coger update y almacenar v new y desde ahi el select
-es decir crear dos triggers: 
-    1. Almacenar en el BEFORE ROW (:new)
-    2. Entrar en el otro update AFTER --> select 
-Como lo hago???
-Mediante packages
+--creamos una vista con todos los datos de los departamentos
+create or replace view vista_departamentos
+AS
+    select * from DEPT;
+--SOLO TRABAJAMOS CON LA VISTA
+--creamos un trigger sobre la vista
+create or replace trigger tr_vista_dept
+instead of insert
+on vista_departamentos
+declare
+begin
+    dbms_output.PUT_LINE('Insertando en Vista DEPT');
+end;
+insert into VISTA_DEPARTAMENTOS values 
+(12, 'VISTA', 'CON TRIGGER');
+select * from vista_departamentos;
+--VAMOS A CREAR UNA VISTA CON LOS DATOS DE LOS EMPLEADOS
+--PERO SIN SUS DATOS SENSIBLES (salario, comision, fecha_alt)
+create or replace view vista_empleados
+as
+    select EMP_NO, APELLIDO, OFICIO, DIR, DEPT_NO from EMP;
+select * from VISTA_EMPLEADOS;
+insert into VISTA_EMPLEADOS values (555, 'el nuevo', 'BECARIO', 7566, 31);
+--si miramos en la tabla...
+select * from EMP ORDER BY EMP_NO;
+--creamos un trigger rellenando los huecos que quedan de EMP
+create or replace trigger tr_vista_empleados
+instead of INSERT
+on vista_empleados
+declare
+begin
+    --con new capturamos los datos que vienen en la vista 
+    --y rellenamos el resto
+    insert into EMP values (:new.EMP_NO, :new.APELLIDO, :new.OFICIO
+    , :new.DIR, sysdate, 0, 0, :new.DEPT_NO);
+end;
+rollback;
+select * from DOCTOR;
+--vamos a crear una vista para mostrar doctores
+create or replace view vista_doctores
+as
+    select DOCTOR.DOCTOR_NO, DOCTOR.APELLIDO, DOCTOR.ESPECIALIDAD
+    , DOCTOR.SALARIO, HOSPITAL.NOMBRE
+    from DOCTOR
+    inner join HOSPITAL
+    on DOCTOR.HOSPITAL_COD = HOSPITAL.HOSPITAL_COD;
+select * from VISTA_DOCTORES;
 
-*/
+create or replace trigger tr_vista_doctor
+instead of INSERT
+on vista_doctores
+declare
+    v_codigo HOSPITAL.HOSPITAL_COD%TYPE;
+begin
+    select HOSPITAL_COD into v_codigo from HOSPITAL
+    where upper(NOMBRE)=upper(:new.NOMBRE);
+    insert into DOCTOR values
+    (v_codigo, :new.DOCTOR_NO, :new.APELLIDO, :new.ESPECIALIDAD
+    , :new.SALARIO);
+end;
+insert into VISTA_DOCTORES values 
+(117, 'House 3', 'Especialista', 450000, 'provincianos');
